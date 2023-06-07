@@ -13,41 +13,38 @@ class Player {
 
     this.rotation = 0;
 
-    const image = new Image();
-    image.src = "./img/space-ship.png";
-    image.onload = () => {
+    this.position = {
+      // Add this line to initialize the position property
+      x: 0,
+      y: 0,
+    };
+
+    this.image = new Image();
+    this.image.src = "./img/space-ship.png";
+    this.image.onload = () => {
       const scale = 0.12;
-      this.image = image;
-      this.width = image.width * scale;
-      this.height = image.height * scale;
+      this.width = this.image.width * scale;
+      this.height = this.image.height * scale;
       this.position = {
         x: canvas.width / 2 - this.width / 2,
         y: canvas.height - this.height - 30,
       };
+      this.draw();
     };
   }
 
   draw() {
-    // c.fillStyle = 'red'
-    // c.fillRect(this.position.x, this.position.y, this.width,
-    //     this.height)
-
     c.save();
     c.translate(
-      player.position.x + player.width / 2,
-      player.position.y + player.height / 2
+      this.position.x + this.width / 2,
+      this.position.y + this.height / 2
     );
     c.rotate(this.rotation);
 
-    c.translate(
-      -player.position.x - player.width / 2,
-      -player.position.y - player.height / 2
-    );
-
     c.drawImage(
       this.image,
-      this.position.x,
-      this.position.y,
+      -this.width / 2,
+      -this.height / 2,
       this.width,
       this.height
     );
@@ -55,10 +52,8 @@ class Player {
   }
 
   update() {
-    if (this.image) {
-      this.draw();
-      this.position.x += this.velocity.x;
-    }
+    this.draw();
+    this.position.x += this.velocity.x;
   }
 }
 
@@ -73,44 +68,41 @@ class Projectile {
   draw() {
     c.beginPath();
     c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-    c.fillStyle = "yellow";
+    c.fillStyle = "red";
     c.fill();
     c.closePath();
   }
 
   update() {
-    this.draw();
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
+    this.draw();
   }
 }
 
 class Invader {
-  constructor() {
+  constructor({ position }) {
     this.velocity = {
       x: 0,
       y: 0,
     };
+    this.position = position; // Assign the position directly to the invader's position
 
-    const image = new Image();
-    image.src = "./img/alien.png";
-    image.onload = () => {
-      const scale = 0.12;
-      this.image = image;
-      this.width = image.width * scale;
-      this.height = image.height * scale;
+    this.image = new Image();
+    this.image.src = "./img/alien.png";
+    this.image.onload = () => {
+      const scale = 0.06;
+      this.width = this.image.width * scale;
+      this.height = this.image.height * scale;
       this.position = {
-        x: canvas.width / 2 - this.width / 2,
-        y: canvas.height / 2,
+        x: position.x,
+        y: position.y,
       };
+      this.draw();
     };
   }
 
   draw() {
-    // c.fillStyle = 'red'
-    // c.fillRect(this.position.x, this.position.y, this.width,
-    //     this.height)
-
     c.drawImage(
       this.image,
       this.position.x,
@@ -120,12 +112,10 @@ class Invader {
     );
   }
 
-  update() {
-    if (this.image) {
-      this.draw();
-      this.position.x += this.velocity.x;
-      this.position.y += this.velocity.y;
-    }
+  update(velocity) {
+    this.position.x += velocity.x;
+    this.position.y += velocity.y;
+    this.draw();
   }
 }
 
@@ -137,23 +127,55 @@ class Grid {
     };
 
     this.velocity = {
-      x: 0,
+      x: 3,
       y: 0,
     };
 
-    this.invader = [new Invader()];
+    this.invaders = [];
+
+    const columns = Math.floor(Math.random() * 10 + 5);
+    const rows = Math.floor(Math.random() * 5 + 2);
+
+    this.width = columns * 30;
+
+    for (let x = 0; x < columns; x++) {
+      for (let y = 0; y < rows; y++) {
+        const invader = new Invader({
+          position: {
+            x: x * 30,
+            y: y * 30,
+          },
+        });
+        this.invaders.push(invader);
+      }
+    }
+    console.log(this.invaders);
   }
-  // console.log(this.invaders)
+
   update() {
-    this.invader.forEach((invader) => {
-      invader.update();
+    this.invaders.forEach((invader) => {
+      invader.position.x += this.velocity.x;
+      invader.position.y += this.velocity.y;
+      invader.draw();
     });
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+
+    this.velocity.y = 0;
+
+    if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
+      this.velocity.x = -this.velocity.x;
+      this.velocity.y = 30;
+      this.invaders.forEach((invader) => {
+        invader.position.y += this.velocity.y;
+      });
+    }
   }
 }
 
 const player = new Player();
 const projectiles = [];
-const grids = [new Grid()];
+const grid = new Grid();
 
 const keys = {
   a: {
@@ -179,6 +201,7 @@ function animate() {
   c.fillRect(0, 0, canvas.width, canvas.height);
 
   player.update();
+
   projectiles.forEach((projectile, index) => {
     if (projectile.position.y + projectile.radius <= 0) {
       setTimeout(() => {
@@ -189,12 +212,7 @@ function animate() {
     }
   });
 
-  grids.forEach((grid) => {
-    grid.update();
-    grid.invader.forEach((invader) => {
-      invader.update();
-    });
-  });
+  grid.update();
 
   if (keys.a.pressed && player.position.x >= 0) {
     player.velocity.x = -7;
@@ -205,13 +223,10 @@ function animate() {
   ) {
     player.velocity.x = 7;
     player.rotation = 0.15;
-  } else if (keys.ArrowLeft.pressed && player.position.x >= 0) {
+  } else if (keys.ArrowLeft.pressed && !keys.ArrowRight.pressed) {
     player.velocity.x = -7;
     player.rotation = -0.15;
-  } else if (
-    keys.ArrowRight.pressed &&
-    player.position.x + player.width <= canvas.width
-  ) {
+  } else if (keys.ArrowRight.pressed && !keys.ArrowLeft.pressed) {
     player.velocity.x = 7;
     player.rotation = 0.15;
   } else {
@@ -243,10 +258,7 @@ addEventListener("keydown", ({ key }) => {
           velocity: { x: 0, y: -8 },
         })
       );
-
-      console.log(projectiles);
       break;
-
     case "ArrowLeft":
       console.log("arrow click to left");
       keys.ArrowLeft.pressed = true;
