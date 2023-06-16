@@ -175,7 +175,7 @@ class Grid {
 
 const player = new Player();
 const projectiles = [];
-const grid = new Grid();
+const grids = []; // Array to store all the grid objects
 
 const keys = {
   a: {
@@ -195,6 +195,10 @@ const keys = {
   },
 };
 
+let frames = 0;
+let randomInterval = Math.floor(Math.random() * 500 + 500);
+console.log(randomInterval);
+
 function animate() {
   requestAnimationFrame(animate);
   c.fillStyle = "black";
@@ -212,7 +216,9 @@ function animate() {
     }
   });
 
-  grid.update();
+  grids.forEach((grid) => {
+    grid.update();
+  });
 
   if (keys.a.pressed && player.position.x >= 0) {
     player.velocity.x = -7;
@@ -233,6 +239,16 @@ function animate() {
     player.velocity.x = 0;
     player.rotation = 0;
   }
+
+  // spawning enemies
+  if (frames % randomInterval === 0) {
+    const newGrid = new Grid();
+    grids.push(newGrid);
+    randomInterval = Math.floor(Math.random() * 500 + 500);
+    frames = 0;
+  }
+
+  frames++;
 }
 
 animate();
