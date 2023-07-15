@@ -207,14 +207,19 @@ function animate() {
 
   projectiles.forEach((projectile, projectileIndex) => {
     if (projectile.position.y + projectile.radius <= 0) {
-      projectiles.splice(projectileIndex, 1);
+      setTimeout(() => {
+        projectiles.splice(projectileIndex, 1);
+      }, 0);
     } else {
       projectile.update();
     }
   });
 
-  grids.forEach((grid) => {
+  grids.forEach((grid, gridIndex) => {
     grid.update();
+    if (grid.invaders.length === 0) {
+      grids.splice(gridIndex, 1); // Remove the grid when invaders are destroyed
+    }
   });
 
   // Collision detection
