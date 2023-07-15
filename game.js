@@ -14,7 +14,6 @@ class Player {
     this.rotation = 0;
 
     this.position = {
-      // Add this line to initialize the position property
       x: 0,
       y: 0,
     };
@@ -86,7 +85,7 @@ class Invader {
       x: 0,
       y: 0,
     };
-    this.position = position; // Assign the position directly to the invader's position
+    this.position = position;
 
     this.image = new Image();
     this.image.src = "./img/alien.png";
@@ -175,7 +174,7 @@ class Grid {
 
 const player = new Player();
 const projectiles = [];
-const grids = []; // Array to store all the grid objects
+const grids = [];
 
 const keys = {
   a: {
@@ -206,11 +205,9 @@ function animate() {
 
   player.update();
 
-  projectiles.forEach((projectile, index) => {
+  projectiles.forEach((projectile, projectileIndex) => {
     if (projectile.position.y + projectile.radius <= 0) {
-      setTimeout(() => {
-        projectiles.splice(index, 1);
-      }, 0);
+      projectiles.splice(projectileIndex, 1);
     } else {
       projectile.update();
     }
@@ -218,6 +215,26 @@ function animate() {
 
   grids.forEach((grid) => {
     grid.update();
+  });
+
+  // Collision detection
+  grids.forEach((grid) => {
+    grid.invaders.forEach((invader, invaderIndex) => {
+      projectiles.forEach((projectile, projectileIndex) => {
+        if (
+          projectile.position.y - projectile.radius <=
+            invader.position.y + invader.height &&
+          projectile.position.x + projectile.radius >= invader.position.x &&
+          projectile.position.x - projectile.radius <=
+            invader.position.x + invader.width &&
+          projectile.position.y + projectile.radius >= invader.position.y
+        ) {
+          // Remove the collided invader and projectile
+          grid.invaders.splice(invaderIndex, 1);
+          projectiles.splice(projectileIndex, 1);
+        }
+      });
+    });
   });
 
   if (keys.a.pressed && player.position.x >= 0) {
@@ -256,15 +273,12 @@ animate();
 addEventListener("keydown", ({ key }) => {
   switch (key) {
     case "a":
-      console.log("left click");
       keys.a.pressed = true;
       break;
     case "d":
-      console.log("right click");
       keys.d.pressed = true;
       break;
     case " ":
-      console.log("space click");
       projectiles.push(
         new Projectile({
           position: {
@@ -276,11 +290,9 @@ addEventListener("keydown", ({ key }) => {
       );
       break;
     case "ArrowLeft":
-      console.log("arrow click to left");
       keys.ArrowLeft.pressed = true;
       break;
     case "ArrowRight":
-      console.log("arrow click to right");
       keys.ArrowRight.pressed = true;
       break;
   }
@@ -289,22 +301,15 @@ addEventListener("keydown", ({ key }) => {
 addEventListener("keyup", ({ key }) => {
   switch (key) {
     case "a":
-      console.log("left click");
       keys.a.pressed = false;
       break;
     case "d":
-      console.log("right click");
       keys.d.pressed = false;
       break;
-    case " ":
-      console.log("space click");
-      break;
     case "ArrowLeft":
-      console.log("arrow click to left");
       keys.ArrowLeft.pressed = false;
       break;
     case "ArrowRight":
-      console.log("arrow click to right");
       keys.ArrowRight.pressed = false;
       break;
   }
