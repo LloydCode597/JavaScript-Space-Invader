@@ -79,6 +79,27 @@ class Projectile {
   }
 }
 
+class InvaderProjectile {
+  constructor({ position, velocity }) {
+    this.position = position;
+    this.velocity = velocity;
+
+    this.width = 3;
+    this.height = 10;
+  }
+
+  draw() {
+    c.fillStyle = "white";
+    c.fillRect(this.position.x, this.position.y, this.width, this.height);
+  }
+
+  update() {
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+    this.draw();
+  }
+}
+
 class Invader {
   constructor({ position }) {
     this.velocity = {
@@ -115,6 +136,21 @@ class Invader {
     this.position.x += velocity.x;
     this.position.y += velocity.y;
     this.draw();
+  }
+
+  shoot(invaderProjectiles) {
+    invaderProjectiles.push(
+      new InvaderProjectile({
+        position: {
+          x: this.position.x + this.width / 2,
+          y: this.position.y + this.height,
+        },
+        velocity: {
+          x: 0,
+          y: 5,
+        },
+      })
+    );
   }
 }
 
@@ -176,6 +212,8 @@ const player = new Player();
 const projectiles = [];
 const grids = [];
 
+const invaderProjectiles = [];
+
 const keys = {
   a: {
     pressed: false,
@@ -205,6 +243,26 @@ function animate() {
 
   player.update();
 
+  invaderProjectiles.forEach((invaderProjectile, index) => {
+    if (
+      invaderProjectile.position.y + invaderProjectile.height >=
+      canvas.height
+    ) {
+      setTimeout(() => {
+        invaderProjectiles.splice(index, 1);
+      }, 0);
+    } else invaderProjectile.update();
+    if (
+      invaderProjectile.position.y + invaderProjectile.height >=
+        player.position.y &&
+      invaderProjectile.position.x + invaderProjectile.width >=
+        player.position.x &&
+      invaderProjectile.position.x <= player.position.x + player.width
+    ) {
+      console.log("You lose!");
+    }
+  });
+
   projectiles.forEach((projectile, projectileIndex) => {
     if (projectile.position.y + projectile.radius <= 0) {
       setTimeout(() => {
@@ -219,6 +277,12 @@ function animate() {
     grid.update();
     if (grid.invaders.length === 0) {
       grids.splice(gridIndex, 1); // Remove the grid when invaders are destroyed
+    }
+    // spawning projectiles
+    if (frames % 100 === 0 && grid.invaders.length > 0) {
+      grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(
+        invaderProjectiles
+      );
     }
   });
 
