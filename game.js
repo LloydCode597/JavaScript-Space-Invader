@@ -242,8 +242,8 @@ class Explosion {
     for (let i = 0; i < 10; i++) {
       const angle = Math.random() * Math.PI * 2;
       const velocity = {
-        x: Math.cos(angle) * (Math.random() * 5 + 2),
-        y: Math.sin(angle) * (Math.random() * 5 + 2),
+        x: Math.cos(angle) * (Math.random() * -0.5 + 2),
+        y: Math.sin(angle) * (Math.random() * -0.5 + 2),
       };
       this.particles.push(new Particle(x, y, velocity, color));
     }
@@ -284,7 +284,66 @@ class PlayerExplosion {
   }
 }
 
+class BackgroundStar {
+  constructor(x, y, radius, velocity) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.velocity = velocity;
+  }
+
+  draw() {
+    c.beginPath();
+    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    c.fillStyle = "white";
+    c.fill();
+    c.closePath();
+  }
+
+  update() {
+    this.y += this.velocity / 5;
+    this.draw();
+  }
+}
+
+class Background {
+  constructor() {
+    this.stars = [];
+    this.numStars = 120; // Adjust the number of stars in the background
+    this.minRadius = 1; // Minimum radius of stars
+    this.maxRadius = 3; // Maximum radius of stars
+    this.minVelocity = 1; // Minimum vertical velocity of stars
+    this.maxVelocity = 3; // Maximum vertical velocity of stars
+
+    // Create random stars with random positions and velocities
+    for (let i = 0; i < this.numStars; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const radius =
+        Math.random() * (this.maxRadius - this.minRadius) + this.minRadius;
+      const velocity =
+        Math.random() * (this.maxVelocity - this.minVelocity) +
+        this.minVelocity;
+      this.stars.push(new BackgroundStar(x, y, radius, velocity));
+    }
+  }
+
+  update() {
+    this.stars.forEach((star) => {
+      // Move the star vertically down
+      star.update();
+
+      // If the star reaches the bottom of the screen, reposition it at the top
+      if (star.y >= canvas.height) {
+        star.y = -star.radius;
+        star.x = Math.random() * canvas.width;
+      }
+    });
+  }
+}
+
 const player = new Player();
+const background = new Background();
 const projectiles = [];
 const grids = [];
 const invaderProjectiles = [];
@@ -319,6 +378,9 @@ function animate() {
   c.fillRect(0, 0, canvas.width, canvas.height);
 
   player.update();
+
+  // Update the background
+  background.update();
 
   explosions.forEach((explosion) => {
     explosion.update();
