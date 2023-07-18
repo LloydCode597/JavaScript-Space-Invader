@@ -207,12 +207,89 @@ class Grid {
     }
   }
 }
+class Particle {
+  constructor(x, y, velocity, color) {
+    this.x = x;
+    this.y = y;
+    this.velocity = velocity;
+    this.color = color;
+    this.alpha = 1;
+    this.radius = 3; // Adjust the size of the particles here
+  }
+
+  draw() {
+    c.save();
+    c.globalAlpha = this.alpha;
+    c.beginPath();
+    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    c.fillStyle = this.color;
+    c.fill();
+    c.closePath();
+    c.restore();
+  }
+
+  update() {
+    this.x += this.velocity.x;
+    this.y += this.velocity.y;
+    this.alpha -= 0.01; // Adjust the lifespan of the particles here
+    this.draw();
+  }
+}
+
+class Explosion {
+  constructor(x, y, color) {
+    this.particles = [];
+    for (let i = 0; i < 10; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const velocity = {
+        x: Math.cos(angle) * (Math.random() * 5 + 2),
+        y: Math.sin(angle) * (Math.random() * 5 + 2),
+      };
+      this.particles.push(new Particle(x, y, velocity, color));
+    }
+  }
+
+  update() {
+    this.particles.forEach((particle, index) => {
+      if (particle.alpha <= 0) {
+        this.particles.splice(index, 1);
+      } else {
+        particle.update();
+      }
+    });
+  }
+}
+class PlayerExplosion {
+  constructor(x, y) {
+    this.particles = [];
+    for (let i = 0; i < 10; i++) {
+      // Adjust the number of particles here
+      const angle = Math.random() * Math.PI * 2;
+      const velocity = {
+        x: Math.cos(angle) * (Math.random() * -0.5 + 2), // Adjust the velocity of the particles here
+        y: Math.sin(angle) * (Math.random() * -0.5 + 2),
+      };
+      this.particles.push(new Particle(x, y, velocity, "white")); // Adjust the color of the particles here
+    }
+  }
+
+  update() {
+    this.particles.forEach((particle, index) => {
+      if (particle.alpha <= 0) {
+        this.particles.splice(index, 1);
+      } else {
+        particle.update();
+      }
+    });
+  }
+}
 
 const player = new Player();
 const projectiles = [];
 const grids = [];
-
 const invaderProjectiles = [];
+const explosions = [];
+const playerExplosions = [];
 
 const keys = {
   a: {
@@ -243,13 +320,17 @@ function animate() {
 
   player.update();
 
-  invaderProjectiles.forEach((invaderProjectile, index) => {
+  explosions.forEach((explosion) => {
+    explosion.update();
+  });
+
+  invaderProjectiles.forEach((invaderProjectile, invaderProjectileIndex) => {
     if (
       invaderProjectile.position.y + invaderProjectile.height >=
       canvas.height
     ) {
       setTimeout(() => {
-        invaderProjectiles.splice(index, 1);
+        invaderProjectiles.splice(invaderProjectileIndex, 1);
       }, 0);
     } else invaderProjectile.update();
     if (
@@ -260,6 +341,15 @@ function animate() {
       invaderProjectile.position.x <= player.position.x + player.width
     ) {
       console.log("You lose!");
+      // Create a player explosion at the position of the player
+      const playerExplosion = new PlayerExplosion(
+        player.position.x + player.width / 2,
+        player.position.y + player.height / 2
+      );
+      playerExplosions.push(playerExplosion);
+
+      // Remove the collided invader projectile
+      invaderProjectiles.splice(invaderProjectileIndex, 1);
     }
   });
 
@@ -284,6 +374,9 @@ function animate() {
         invaderProjectiles
       );
     }
+    playerExplosions.forEach((playerExplosion) => {
+      playerExplosion.update();
+    });
   });
 
   // Collision detection
@@ -298,6 +391,14 @@ function animate() {
             invader.position.x + invader.width &&
           projectile.position.y + projectile.radius >= invader.position.y
         ) {
+          // Create an explosion at the position of the invader
+          const explosion = new Explosion(
+            invader.position.x + invader.width / 2,
+            invader.position.y + invader.height / 2,
+            "orange"
+          );
+          explosions.push(explosion);
+
           // Remove the collided invader and projectile
           grid.invaders.splice(invaderIndex, 1);
           projectiles.splice(projectileIndex, 1);
