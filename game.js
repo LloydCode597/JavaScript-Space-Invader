@@ -1,6 +1,7 @@
 const canvas = document.querySelector("canvas");
+const scoreBoard = document.querySelector("#scoreBoard");
 const c = canvas.getContext("2d");
-
+console.log(scoreBoard);
 canvas.width = document.body.scrollWidth;
 canvas.height = document.body.scrollHeight;
 
@@ -30,6 +31,12 @@ class Player {
       };
       this.draw();
     };
+
+    this.isDestroyed = false;
+    this.projectilesFired = 0;
+    this.maxProjectiles = 5;
+    this.hitCount = 0; // New property to track the number of times player is hit
+    this.maxHits = 3; // New property to set the maximum hits allowed
   }
 
   draw() {
@@ -51,8 +58,41 @@ class Player {
   }
 
   update() {
+    if (this.isDestroyed) {
+      return;
+    }
+
     this.draw();
     this.position.x += this.velocity.x;
+
+    if (this.projectilesFired < this.maxProjectiles) {
+      this.fireProjectile();
+      this.projectilesFired++;
+    }
+  }
+
+  fireProjectile() {
+    projectiles.push(
+      new Projectile({
+        position: {
+          x: this.position.x + this.width / 2,
+          y: this.position.y,
+        },
+        velocity: { x: 0, y: -8 },
+      })
+    );
+  }
+
+  destroy() {
+    this.isDestroyed = true;
+    this.velocity.x = 0; // Stop player movement
+  }
+
+  hit() {
+    this.hitCount++;
+    if (this.hitCount >= this.maxHits) {
+      this.destroy();
+    }
   }
 }
 
@@ -89,7 +129,7 @@ class InvaderProjectile {
   }
 
   draw() {
-    c.fillStyle = "white";
+    c.fillStyle = "yellow";
     c.fillRect(this.position.x, this.position.y, this.width, this.height);
   }
 
@@ -370,13 +410,13 @@ const keys = {
 
 let frames = 0;
 let randomInterval = Math.floor(Math.random() * 500 + 500);
-console.log(randomInterval);
+let freezeTime = 0; // New variable to track the freeze time
+let score = 0; // New variable to track the scoreboard
 
 function animate() {
   requestAnimationFrame(animate);
   c.fillStyle = "black";
   c.fillRect(0, 0, canvas.width, canvas.height);
-
   player.update();
 
   // Update the background
@@ -385,6 +425,7 @@ function animate() {
   explosions.forEach((explosion) => {
     explosion.update();
   });
+
   projectiles.forEach((projectile, projectileIndex) => {
     if (projectile.position.y + projectile.radius <= 0) {
       setTimeout(() => {
@@ -412,6 +453,8 @@ function animate() {
       invaderProjectile.position.x <= player.position.x + player.width
     ) {
       console.log("You lose!");
+      player.hit(); // Player is hit by the invader projectile
+
       // Create a player explosion at the position of the player
       const playerExplosion = new PlayerExplosion(
         player.position.x + player.width / 2,
@@ -463,6 +506,9 @@ function animate() {
           // Remove the collided invader and projectile
           grid.invaders.splice(invaderIndex, 1);
           projectiles.splice(projectileIndex, 1);
+          score += 100;
+          console.log(score);
+          scoreBoard.innerHTML = score;
         }
       });
     });
@@ -489,7 +535,7 @@ function animate() {
   }
 
   // spawning enemies
-  if (frames % randomInterval === 0) {
+  if (frames % randomInterval === 0 && freezeTime <= 0) {
     const newGrid = new Grid();
     grids.push(newGrid);
     randomInterval = Math.floor(Math.random() * 500 + 500);
@@ -497,6 +543,26 @@ function animate() {
   }
 
   frames++;
+
+  // Freeze elements for 2 seconds after player is destroyed
+  if (player.isDestroyed) {
+    freezeTime = 120; // 2 seconds (60 frames per second)
+    playerExplosions.forEach((playerExplosion) => {
+      playerExplosion.update();
+    });
+    projectiles.length = 0; // Clear projectiles
+    invaderProjectiles.length = 0; // Clear invader projectiles
+    grids.forEach((grid) => {
+      grid.invaders.length = 0; // Clear invaders
+    });
+    explosions.length = 0; // Clear explosions
+    playerExplosions.length = 0; // Clear player explosions
+  }
+
+  // Countdown freeze time
+  if (freezeTime > 0) {
+    freezeTime--;
+  }
 }
 
 animate();
@@ -510,15 +576,17 @@ addEventListener("keydown", ({ key }) => {
       keys.d.pressed = true;
       break;
     case " ":
-      projectiles.push(
-        new Projectile({
-          position: {
-            x: player.position.x + player.width / 2,
-            y: player.position.y,
-          },
-          velocity: { x: 0, y: -8 },
-        })
-      );
+      if (!player.isDestroyed) {
+        projectiles.push(
+          new Projectile({
+            position: {
+              x: player.position.x + player.width / 2,
+              y: player.position.y,
+            },
+            velocity: { x: 0, y: -8 },
+          })
+        );
+      }
       break;
     case "ArrowLeft":
       keys.ArrowLeft.pressed = true;
