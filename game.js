@@ -1,9 +1,9 @@
 const canvas = document.querySelector("canvas");
 const scoreBoard = document.querySelector("#scoreBoard");
 const c = canvas.getContext("2d");
-console.log(scoreBoard);
-canvas.width = document.body.scrollWidth;
-canvas.height = document.body.scrollHeight;
+
+canvas.width = 1024;
+canvas.height = 678;
 
 class Player {
   constructor() {
