@@ -385,6 +385,15 @@ function animate() {
   explosions.forEach((explosion) => {
     explosion.update();
   });
+  projectiles.forEach((projectile, projectileIndex) => {
+    if (projectile.position.y + projectile.radius <= 0) {
+      setTimeout(() => {
+        projectiles.splice(projectileIndex, 1);
+      }, 0);
+    } else {
+      projectile.update();
+    }
+  });
 
   invaderProjectiles.forEach((invaderProjectile, invaderProjectileIndex) => {
     if (
@@ -412,16 +421,6 @@ function animate() {
 
       // Remove the collided invader projectile
       invaderProjectiles.splice(invaderProjectileIndex, 1);
-    }
-  });
-
-  projectiles.forEach((projectile, projectileIndex) => {
-    if (projectile.position.y + projectile.radius <= 0) {
-      setTimeout(() => {
-        projectiles.splice(projectileIndex, 1);
-      }, 0);
-    } else {
-      projectile.update();
     }
   });
 
