@@ -1,1 +1,1 @@
-# JavaScript Space-Invader
+# JavaScript Space Invader
