@@ -509,6 +509,25 @@ function animate() {
           score += 100;
           console.log(score);
           scoreBoard.innerHTML = score;
+
+          // dynamic score labels
+          const dynamicScore = document.createElement("label");
+          dynamicScore.innerHTML = "+100"; // Show +100 for the score
+          dynamicScore.style.position = "absolute";
+          dynamicScore.style.color = "white";
+          dynamicScore.style.top = invader.position.y + "px";
+          dynamicScore.style.left = invader.position.x + "px";
+          dynamicScore.style.userSelect = "none";
+          document.body.appendChild(dynamicScore);
+
+          gsap.to(dynamicScore, {
+            opacity: 0,
+            y: -30,
+            duration: 0.75,
+            onComplete: () => {
+              document.body.removeChild(dynamicScore); // Use 'document.body' instead of '#parentDiv'
+            },
+          });
         }
       });
     });
