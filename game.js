@@ -90,7 +90,9 @@ class Player {
 
   hit() {
     this.hitCount++;
+    audio.Damage_taken.play();
     if (this.hitCount >= this.maxHits) {
+      audio.Death.play();
       this.destroy();
     }
   }
@@ -179,6 +181,7 @@ class Invader {
   }
 
   shoot(invaderProjectiles) {
+    audio.shootEnemy.play();
     invaderProjectiles.push(
       new InvaderProjectile({
         position: {
@@ -247,6 +250,7 @@ class Grid {
     }
   }
 }
+
 class Particle {
   constructor(x, y, velocity, color) {
     this.x = x;
@@ -596,6 +600,7 @@ addEventListener("keydown", ({ key }) => {
       break;
     case " ":
       if (!player.isDestroyed) {
+        if (frames % 2 === 0) audio.playerShoot.play();
         projectiles.push(
           new Projectile({
             position: {
@@ -632,3 +637,5 @@ addEventListener("keyup", ({ key }) => {
       break;
   }
 });
+
+audio.backgroundMusic.play();
