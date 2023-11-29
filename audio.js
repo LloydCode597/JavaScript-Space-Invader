@@ -1,6 +1,7 @@
 const audio = {
   backgroundMusic: new Howl({
     src: "./audio/Background-Music.wav",
+    loop: true, // Make sure the background music loops
   }),
   //   bomb: new Howl({
   //     src: "./audio/bomb.mp3",

@@ -600,7 +600,7 @@ addEventListener("keydown", ({ key }) => {
       break;
     case " ":
       if (!player.isDestroyed) {
-        if (frames % 2 === 0) audio.playerShoot.play();
+        audio.playerShoot.play();
         projectiles.push(
           new Projectile({
             position: {
