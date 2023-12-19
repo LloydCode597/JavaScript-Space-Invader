@@ -386,6 +386,45 @@ class Background {
   }
 }
 
+class Bomb {
+  static radius = 30;
+  constructor({ position, velocity }) {
+    this.position = position;
+    this.velocity = velocity;
+    this.radius = 30;
+    this.color = "red";
+  }
+
+  draw() {
+    c.beginPath();
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    c.closePath();
+    c.fillStyle = this.color;
+    c.fill();
+  }
+
+  update() {
+    this.draw();
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+
+    if (
+      this.position.x + this.radius + this.velocity.x >= canvas.width ||
+      this.position.x - this.radius + this.velocity.x <= 0
+    ) {
+      this.velocity.x = -this.velocity.x;
+    } else if (
+      this.position.y + this.radius + this.velocity.y >= canvas.height ||
+      this.position.y - this.radius + this.velocity.y <= 0
+    )
+      this.velocity.y = -this.velocity.y;
+  }
+}
+
+function randomBetween(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
 const player = new Player();
 const background = new Background();
 const projectiles = [];
@@ -393,6 +432,28 @@ const grids = [];
 const invaderProjectiles = [];
 const explosions = [];
 const playerExplosions = [];
+const bombs = [
+  new Bomb({
+    position: {
+      x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
+      y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
+    },
+    velocity: {
+      x: (Math.random() - 0.5) * 6,
+      y: (Math.random() - 0.5) * 6,
+    },
+  }),
+  new Bomb({
+    position: {
+      x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
+      y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
+    },
+    velocity: {
+      x: (Math.random() - 0.5) * 6,
+      y: (Math.random() - 0.5) * 6,
+    },
+  }),
+];
 
 const keys = {
   a: {
@@ -421,6 +482,12 @@ function animate() {
   requestAnimationFrame(animate);
   c.fillStyle = "black";
   c.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = bombs.length - 1; i >= 0; i--) {
+    const bomb = bombs[i];
+    bomb.update();
+  }
+
   player.update();
 
   // Update the background
