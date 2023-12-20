@@ -393,14 +393,19 @@ class Bomb {
     this.velocity = velocity;
     this.radius = 30;
     this.color = "red";
+    this.opacity = 1;
+    this.alpha = false;
   }
 
   draw() {
+    c.save();
+    c.globalAlpha = this.opacity;
     c.beginPath();
     c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
     c.closePath();
     c.fillStyle = this.color;
     c.fill();
+    c.restore();
   }
 
   update() {
@@ -418,6 +423,22 @@ class Bomb {
       this.position.y - this.radius + this.velocity.y <= 0
     )
       this.velocity.y = -this.velocity.y;
+  }
+
+  explode() {
+    this.active = true;
+    this.velocity.x = 0;
+    this.velocity.y = 0;
+    gsap.to(this, {
+      radius: 100,
+      color: "white",
+    });
+
+    gsap.to(this, {
+      delay: 0.1,
+      opacity: 0,
+      duration: 0.15,
+    });
   }
 }
 
@@ -497,15 +518,32 @@ function animate() {
     explosion.update();
   });
 
-  projectiles.forEach((projectile, projectileIndex) => {
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const projectile = projectiles[i];
+
+    for (let j = bombs.length - 1; j >= 0; j--) {
+      const bomb = bombs[j];
+
+      // if the projectile touches bomb, remove projectile
+      if (
+        Math.hypot(
+          projectile.position.x - bomb.position.x,
+          projectile.position.y - bomb.position.y
+        ) <
+          projectile.radius + bomb.radius &&
+        !bomb.active
+      ) {
+        projectiles.slice(i, 1);
+        bomb.explode();
+      }
+    }
+
     if (projectile.position.y + projectile.radius <= 0) {
-      setTimeout(() => {
-        projectiles.splice(projectileIndex, 1);
-      }, 0);
+      projectiles.splice(i, 1);
     } else {
       projectile.update();
     }
-  });
+  }
 
   invaderProjectiles.forEach((invaderProjectile, invaderProjectileIndex) => {
     if (
