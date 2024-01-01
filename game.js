@@ -391,10 +391,14 @@ class Bomb {
   constructor({ position, velocity }) {
     this.position = position;
     this.velocity = velocity;
-    this.radius = 30;
+    this.radius = 0;
     this.color = "red";
     this.opacity = 1;
     this.alpha = false;
+
+    gsap.to(this, {
+      radius: 30,
+    });
   }
 
   draw() {
@@ -430,7 +434,7 @@ class Bomb {
     this.velocity.x = 0;
     this.velocity.y = 0;
     gsap.to(this, {
-      radius: 100,
+      radius: 200,
       color: "white",
     });
 
@@ -453,28 +457,7 @@ const grids = [];
 const invaderProjectiles = [];
 const explosions = [];
 const playerExplosions = [];
-const bombs = [
-  new Bomb({
-    position: {
-      x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
-      y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
-    },
-    velocity: {
-      x: (Math.random() - 0.5) * 6,
-      y: (Math.random() - 0.5) * 6,
-    },
-  }),
-  new Bomb({
-    position: {
-      x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
-      y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
-    },
-    velocity: {
-      x: (Math.random() - 0.5) * 6,
-      y: (Math.random() - 0.5) * 6,
-    },
-  }),
-];
+const bombs = [];
 
 const keys = {
   a: {
@@ -499,14 +482,53 @@ let randomInterval = Math.floor(Math.random() * 500 + 500);
 let freezeTime = 0; // New variable to track the freeze time
 let score = 0; // New variable to track the scoreboard
 
+function createScoreLabel({ score = 100, object }) {
+  const dynamicScore = document.createElement("label");
+
+  dynamicScore.innerHTML = score; // Show +100 for the score
+  dynamicScore.style.position = "absolute";
+  dynamicScore.style.color = "white";
+  dynamicScore.style.top = object.position.y + "px";
+  dynamicScore.style.left = object.position.x + "px";
+  dynamicScore.style.userSelect = "none";
+  document.body.appendChild(dynamicScore);
+
+  gsap.to(dynamicScore, {
+    opacity: 0,
+    y: -30,
+    duration: 0.75,
+    onComplete: () => {
+      document.body.removeChild(dynamicScore); // Use 'document.body' instead of '#parentDiv'
+    },
+  });
+}
+
 function animate() {
   requestAnimationFrame(animate);
   c.fillStyle = "black";
   c.fillRect(0, 0, canvas.width, canvas.height);
 
+  if (frames % 200 === 0 && bombs.length < 3) {
+    bombs.push(
+      new Bomb({
+        position: {
+          x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
+          y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
+        },
+        velocity: {
+          x: (Math.random() - 0.5) * 6,
+          y: (Math.random() - 0.5) * 6,
+        },
+      })
+    );
+  }
+
   for (let i = bombs.length - 1; i >= 0; i--) {
     const bomb = bombs[i];
-    bomb.update();
+
+    if (bomb.opacity === 0) {
+      bombs.splice(i, 1);
+    } else bomb.update();
   }
 
   player.update();
@@ -594,7 +616,33 @@ function animate() {
 
   // Collision detection
   grids.forEach((grid) => {
-    grid.invaders.forEach((invader, invaderIndex) => {
+    for (let i = grid.invaders.length - 1; i >= 0; i--) {
+      const invader = grid.invaders[i];
+
+      for (let j = bombs.length - 1; j >= 0; j--) {
+        const bomb = bombs[j];
+
+        const invaderRadius = 15;
+        // if bomb touches invader, remove invader
+        if (
+          Math.hypot(
+            invader.position.x - bomb.position.x,
+            invader.position.y - bomb.position.y
+          ) <
+            invaderRadius + bomb.radius &&
+          bomb.active
+        ) {
+          score += 50;
+          score.innerHTML = score;
+
+          grid.invaders.splice(i, 1);
+          createScoreLabel({
+            object: invader,
+            score: 50,
+          });
+        }
+      }
+
       projectiles.forEach((projectile, projectileIndex) => {
         if (
           projectile.position.y - projectile.radius <=
@@ -620,26 +668,12 @@ function animate() {
           scoreBoard.innerHTML = score;
 
           // dynamic score labels
-          const dynamicScore = document.createElement("label");
-          dynamicScore.innerHTML = "+100"; // Show +100 for the score
-          dynamicScore.style.position = "absolute";
-          dynamicScore.style.color = "white";
-          dynamicScore.style.top = invader.position.y + "px";
-          dynamicScore.style.left = invader.position.x + "px";
-          dynamicScore.style.userSelect = "none";
-          document.body.appendChild(dynamicScore);
-
-          gsap.to(dynamicScore, {
-            opacity: 0,
-            y: -30,
-            duration: 0.75,
-            onComplete: () => {
-              document.body.removeChild(dynamicScore); // Use 'document.body' instead of '#parentDiv'
-            },
+          createScoreLabel({
+            object: invader,
           });
         }
       });
-    });
+    }
   });
 
   if (keys.a.pressed && player.position.x >= 0) {
