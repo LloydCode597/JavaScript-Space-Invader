@@ -661,7 +661,7 @@ function animate() {
           explosions.push(explosion);
 
           // Remove the collided invader and projectile
-          grid.invaders.splice(invaderIndex, 1);
+          grid.invaders.splice(i, 1);
           projectiles.splice(projectileIndex, 1);
           score += 100;
           console.log(score);
