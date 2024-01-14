@@ -1,3 +1,3 @@
 # JavaScript Space Invader
 
-To Be Continued
+To Be Continue
