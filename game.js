@@ -228,7 +228,6 @@ class Grid {
         this.invaders.push(invader);
       }
     }
-    console.log(this.invaders);
   }
 
   update() {
@@ -243,8 +242,9 @@ class Grid {
     this.velocity.y = 0;
 
     if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
-      this.velocity.x = -this.velocity.x;
+      this.velocity.x = -this.velocity.x * 1.15;
       this.velocity.y = 30;
+
       this.invaders.forEach((invader) => {
         invader.position.y += this.velocity.y;
       });
@@ -527,12 +527,31 @@ function createScoreLabel({ score = 100, object }) {
   });
 }
 
+function rectangularCollision({ rectangle1, rectangle2 }) {
+  return (
+    rectangle1.position.y + rectangle1.height >= rectangle2.position.y &&
+    rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
+    rectangle1.position.x <= rectangle2.position.x + rectangle2.width
+  );
+}
+
+function endGame() {
+  setTimeout(() => {
+    player.opacity = 0;
+    game.over = true;
+  }, 0);
+
+  setTimeout(() => {
+    game.over = false;
+  }, 2000);
+}
+
+let spawnBuffer = 500;
 function animate() {
   requestAnimationFrame(animate);
   c.fillStyle = "black";
   c.fillRect(0, 0, canvas.width, canvas.height);
 
-  // console.log(powerUps);
   for (let i = powerUps.length - 1; i >= 0; i--) {
     const powerUp = powerUps[i];
 
@@ -649,12 +668,13 @@ function animate() {
         invaderProjectiles.splice(invaderProjectileIndex, 1);
       }, 0);
     } else invaderProjectile.update();
+
+    // projectile hits player
     if (
-      invaderProjectile.position.y + invaderProjectile.height >=
-        player.position.y &&
-      invaderProjectile.position.x + invaderProjectile.width >=
-        player.position.x &&
-      invaderProjectile.position.x <= player.position.x + player.width
+      rectangularCollision({
+        rectangle1: invaderProjectile,
+        rectangle2: player,
+      })
     ) {
       console.log("You lose!");
       player.hit(); // Player is hit by the invader projectile
@@ -668,6 +688,8 @@ function animate() {
 
       // Remove the collided invader projectile
       invaderProjectiles.splice(invaderProjectileIndex, 1);
+      invaderProjectiles.splice(index, 1);
+      endGame();
     }
   });
 
@@ -691,7 +713,6 @@ function animate() {
   grids.forEach((grid) => {
     for (let i = grid.invaders.length - 1; i >= 0; i--) {
       const invader = grid.invaders[i];
-
       for (let j = bombs.length - 1; j >= 0; j--) {
         const bomb = bombs[j];
 
@@ -737,7 +758,6 @@ function animate() {
           grid.invaders.splice(i, 1);
           projectiles.splice(projectileIndex, 1);
           score += 100;
-          console.log(score);
           scoreBoard.innerHTML = score;
 
           // dynamic score labels
@@ -746,7 +766,16 @@ function animate() {
           });
         }
       });
-    }
+      // remove player if invader touch it
+      if (
+        rectangularCollision({
+          rectangle1: invader,
+          rectangle2: player,
+        }) &&
+        !game.over
+      )
+        endGame();
+    } // end looping over
   });
 
   if (keys.a.pressed && player.position.x >= 0) {
@@ -771,10 +800,13 @@ function animate() {
 
   // spawning enemies
   if (frames % randomInterval === 0 && freezeTime <= 0) {
-    const newGrid = new Grid();
-    grids.push(newGrid);
-    randomInterval = Math.floor(Math.random() * 500 + 500);
+    console.log(spawnBuffer);
+    console.log(randomInterval);
+    spawnBuffer = spawnBuffer < 0 ? 100 : spawnBuffer;
+    grids.push(new Grid());
+    randomInterval = Math.floor(Math.random() * 500 + spawnBuffer);
     frames = 0;
+    spawnBuffer -= 100;
   }
 
   // spawning powerups
