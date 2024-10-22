@@ -3,12 +3,12 @@ const audio = {
     src: "./audio/Background-Music.wav",
     loop: true, // Make sure the background music loops
   }),
-  //   bomb: new Howl({
-  //     src: "./audio/bomb.mp3",
-  //   }),
-  //   bonus: new Howl({
-  //     src: "./audio/bonus.mp3",
-  //   }),
+  bomb: new Howl({
+    src: "./audio/bomb.mp3",
+  }),
+  bonus: new Howl({
+    src: "./audio/bonus.mp3",
+  }),
   shootEnemy: new Howl({
     src: "./audio/shootEnemy.mp3",
   }),
