@@ -1,4 +1,4 @@
-# Space-Invaders Game
+# JavaScript Space-Invaders Game
 
 A simple space invaders game built using HTML, CSS, and JavaScript.
 
