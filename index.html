@@ -18,8 +18,9 @@
         background-color: #02001c;
       }
     </style>
-    <div style="position: relative">
+    <div style="position: relative" id="parentDiv">
       <p
+        id="scoreContainer"
         style="
           position: absolute;
           z-index: 10;
@@ -29,12 +30,93 @@
           margin: 0;
           font-family: sans-serif;
           font-size: 14px;
+          display: none;
         "
       >
         <span>Score:</span> <span id="scoreBoard">0</span>
       </p>
       <canvas></canvas>
+  <!-- background container -->
+  <div
+    id="startScreen"
+    style="
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: url('./img/startScreenBackground.png');
+      z-index: 20;
+      background-size: contain;
+      background-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    "
+  >
+    <div style="text-align: center">
+      <h1 style="color: white">Space Invaders</h1>
+
+      <!-- button -->
+      <div
+        id="startButton"
+        style="cursor: pointer; position: relative; display: inline-block"
+      >
+        <img src="./img/button.png" alt="Start Button" />
+        <span
+          style="
+            position: absolute;
+            color: white;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            left: 50%;
+          "
+          >Start</span
+        >
+      </div>
     </div>
+  </div>
+  <!-- restart screen -->
+  <!-- background container -->
+  <div
+    id="restartScreen"
+    style="
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: url('./img/startScreenBackground.png');
+      z-index: 20;
+      background-size: contain;
+      background-repeat: no-repeat;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    "
+  >
+    <div style="text-align: center">
+      <h1 style="color: white">Game Over</h1>
+
+      <!-- button -->
+      <div
+        id="restartButton"
+        style="cursor: pointer; position: relative; display: inline-block"
+      >
+        <img src="./img/button.png" alt="Restart Button" />
+        <span
+          style="
+            position: absolute;
+            color: white;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            left: 50%;
+          "
+          >Restart</span
+        >
+      </div>
+    </div>
+  </div>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"
       integrity="sha512-16esztaSRplJROstbIIdwX3N97V1+pZvV33ABoG1H2OyTttBxEGkTsoIVsiP1iaTtM8b3+hu2kB6pQ4Clr5yug=="

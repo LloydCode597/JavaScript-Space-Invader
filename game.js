@@ -36,7 +36,7 @@ class Player {
     this.projectilesFired = 0;
     this.maxProjectiles = 5;
     this.hitCount = 0; // New property to track the number of times player is hit
-    this.maxHits = 3; // New property to set the maximum hits allowed
+    this.maxHits = 1; // New property to set the maximum hits allowed
   }
 
   draw() {
@@ -534,15 +534,23 @@ function rectangularCollision({ rectangle1, rectangle2 }) {
     rectangle1.position.x <= rectangle2.position.x + rectangle2.width
   );
 }
+const game = {
+  over: false,
+  active: true,
+};
 
 function endGame() {
+  console.log("endGame called"); // Debugging check
+  // Makes player disappear
   setTimeout(() => {
     player.opacity = 0;
     game.over = true;
   }, 0);
 
+  // stops game altogether
   setTimeout(() => {
-    game.over = false;
+    game.active = false;
+    document.querySelector("#restartScreen").style.display = "flex";
   }, 2000);
 }
 
@@ -551,6 +559,7 @@ function animate() {
   requestAnimationFrame(animate);
   c.fillStyle = "black";
   c.fillRect(0, 0, canvas.width, canvas.height);
+  if (!game.active) return; // Stop the game loop if game is not active
 
   for (let i = powerUps.length - 1; i >= 0; i--) {
     const powerUp = powerUps[i];
@@ -676,7 +685,7 @@ function animate() {
         rectangle2: player,
       })
     ) {
-      console.log("You lose!");
+      console.log("You been hit!");
       player.hit(); // Player is hit by the invader projectile
 
       // Create a player explosion at the position of the player
@@ -688,7 +697,7 @@ function animate() {
 
       // Remove the collided invader projectile
       invaderProjectiles.splice(invaderProjectileIndex, 1);
-      invaderProjectiles.splice(index, 1);
+      invaderProjectiles.splice(invaderProjectileIndex, 1);
       endGame();
     }
   });
@@ -846,7 +855,12 @@ function animate() {
   }
 }
 
-animate();
+// animate();
+document.querySelector("#startButton").addEventListener("click", () => {
+  document.querySelector("#startScreen").style.display = "none";
+  document.querySelector("#scoreContainer").style.display = "block";
+  animate();
+});
 
 addEventListener("keydown", ({ key }) => {
   switch (key) {
