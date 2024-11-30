@@ -473,17 +473,17 @@ function randomBetween(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-const player = new Player();
-const background = new Background();
-const projectiles = [];
-const grids = [];
-const invaderProjectiles = [];
-const explosions = [];
-const playerExplosions = [];
-const bombs = [];
-const powerUps = [];
+let player = new Player();
+let background = new Background();
+let projectiles = [];
+let grids = [];
+let invaderProjectiles = [];
+let explosions = [];
+let playerExplosions = [];
+let bombs = [];
+let powerUps = [];
 
-const keys = {
+let keys = {
   a: {
     pressed: false,
   },
@@ -505,6 +505,45 @@ let frames = 0;
 let randomInterval = Math.floor(Math.random() * 500 + 500);
 let freezeTime = 0; // New variable to track the freeze time
 let score = 0; // New variable to track the scoreboard
+let animationId; // Store the ID returned by requestAnimationFrame
+
+function init() {
+  game.active = true;
+  game.over = false;
+
+  player = new Player();
+  background = new Background();
+  projectiles = [];
+  grids = [];
+  invaderProjectiles = [];
+  explosions = [];
+  playerExplosions = [];
+  bombs = [];
+  powerUps = [];
+
+  keys = {
+    a: {
+      pressed: false,
+    },
+    d: {
+      pressed: false,
+    },
+    space: {
+      pressed: false,
+    },
+    ArrowLeft: {
+      pressed: false,
+    },
+    ArrowRight: {
+      pressed: false,
+    },
+  };
+
+  frames = 0;
+  randomInterval = Math.floor(Math.random() * 500 + 500);
+  freezeTime = 0; // New variable to track the freeze time
+  score = 0; // New
+}
 
 function createScoreLabel({ score = 100, object }) {
   const dynamicScore = document.createElement("label");
@@ -541,6 +580,7 @@ const game = {
 
 function endGame() {
   console.log("endGame called"); // Debugging check
+
   // Makes player disappear
   setTimeout(() => {
     player.opacity = 0;
@@ -556,7 +596,7 @@ function endGame() {
 
 let spawnBuffer = 500;
 function animate() {
-  requestAnimationFrame(animate);
+  animationId = requestAnimationFrame(animate);
   c.fillStyle = "black";
   c.fillRect(0, 0, canvas.width, canvas.height);
   if (!game.active) return; // Stop the game loop if game is not active
@@ -859,7 +899,15 @@ function animate() {
 document.querySelector("#startButton").addEventListener("click", () => {
   document.querySelector("#startScreen").style.display = "none";
   document.querySelector("#scoreContainer").style.display = "block";
+  init();
   animate();
+});
+
+document.querySelector("#restartButton").addEventListener("click", () => {
+  document.querySelector("#restartScreen").style.display = "none";
+  cancelAnimationFrame(animationId); // Stop the previous animation loop
+  init(); // Reset all game variables
+  animate(); // Start a new game loop
 });
 
 addEventListener("keydown", ({ key }) => {
